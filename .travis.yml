@@ -25,6 +25,7 @@ install:
   #- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
   #- source activate test-environment
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pip atlas numpy scipy matplotlib nose dateutil pandas statsmodels
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION Cython
   # Coverage packages are on my binstar channel
   - pip install pep8 python-coveralls nose-cov
   - python setup.py install

@@ -1,0 +1,3 @@
+recursive-include experiments *
+recursive-include aitk *.c *.h *.pyx *.pxd *.pxi
+include README.md

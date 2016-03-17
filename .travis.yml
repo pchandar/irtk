@@ -20,13 +20,15 @@ install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-
+  - sudo apt-get install -qq gcc-4.8 g++-4.8
   # Replace dep1 dep2 ... with your dependencies
   #- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
   #- source activate test-environment
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pip atlas numpy scipy matplotlib nose dateutil pandas statsmodels
   - conda install --yes python=$TRAVIS_PYTHON_VERSION Cython
   # Coverage packages are on my binstar channel
+  - export CC=gcc-4.8
+  - export CXX=g++-4.9
   - pip install pep8 python-coveralls nose-cov
   - python setup.py install
 

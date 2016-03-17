@@ -1,1 +1,2 @@
 [![Build Status](https://travis-ci.org/pchandar/AITK.svg?branch=master)](https://travis-ci.org/pchandar/AITK)
+[![Coverage Status](https://coveralls.io/repos/github/pchandar/AITK/badge.svg?branch=master)](https://coveralls.io/github/pchandar/AITK?branch=master)

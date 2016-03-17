@@ -4,6 +4,14 @@ python:
   - 2.7
   - 3.3
 
+before_install:
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libyajl-dev libxml2-dev libxqilla-dev
+  - if [ "$CXX" = "clang++" ]; then sudo apt-get install -qq libstdc++-4.8-dev; fi
+  - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+
 install:
   - sudo apt-get update
   # We do this conditionally because it saves us some downloading if the
@@ -20,15 +28,12 @@ install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-  - sudo apt-get install -qq gcc-4.8 g++-4.8
   # Replace dep1 dep2 ... with your dependencies
   #- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
   #- source activate test-environment
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pip atlas numpy scipy matplotlib nose dateutil pandas statsmodels
   - conda install --yes python=$TRAVIS_PYTHON_VERSION Cython
   # Coverage packages are on my binstar channel
-  - export CC=gcc-4.8
-  - export CXX=g++-4.9
   - pip install pep8 python-coveralls nose-cov
   - python setup.py install
 

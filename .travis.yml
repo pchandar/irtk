@@ -2,11 +2,11 @@ language: python
 
 python:
   - 2.7
-  
+
 env:
-    - CC=gcc     CXX=g++
-    - CC=gcc-4.8 CXX=g++-4.8
-    - CC=gcc-4.9 CXX=g++-4.9
+#    - CC=gcc     CXX=g++
+#    - CC=gcc-4.8 CXX=g++-4.8
+#    - CC=gcc-4.9 CXX=g++-4.9
     - CC=clang   CXX=clang++
 
 addons:

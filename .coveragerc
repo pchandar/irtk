@@ -1,0 +1,6 @@
+[run]
+branch = True
+source = aitk
+include = */aitk/*
+omit =
+    */setup.py

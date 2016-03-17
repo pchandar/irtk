@@ -50,11 +50,12 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION Cython
   # Coverage packages are on my binstar channel
   - pip install pep8 python-coveralls nose-cov
+  - pip install coveralls
   - python setup.py install
 
 # Run test
 script:
-  - nosetests --with-cov --cov aitk --cov-config .coveragerc --logging-level=INFO
+  - nosetests --with-coverage --cover-package=aitk --logging-level=INFO
 
 # Calculate coverage
 after_success:

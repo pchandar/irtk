@@ -1,4 +1,4 @@
-cimport cython
+ cimport cython
 
 from query_env cimport QueryEnvironment
 from libcpp.string cimport string

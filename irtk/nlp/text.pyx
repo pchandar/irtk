@@ -1,14 +1,11 @@
 # cython: c_string_type=str, c_string_encoding=ascii, embedsignature=True, linetrace=True
-# distutils: language = c++
-# distutils: sources = text.cpp
 # distutils: define_macros=CYTHON_TRACE_NOGIL=1
 
 from __future__ import print_function
-from text cimport conll_tokenize
-from libcpp.string cimport string
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdio cimport *
 from .text cimport Vocabulary
+from .text cimport conll_tokenize
 import numpy as np
 
 cdef class Vocab:
@@ -20,6 +17,7 @@ cdef class Vocab:
 
     def __init__(Vocab self):
         self._thisptr = new Vocabulary()
+        self.weights = None
 
     cdef int _check_alive(Vocab self) except -1:
         if self._thisptr == NULL:
@@ -49,7 +47,6 @@ cdef class Vocab:
         cdef char*c_string = py_byte_string
         return self._thisptr.addWord(c_string, 0)
 
-
     def save(Vocab self, str filepath):
         py_byte_string = filepath.encode('UTF-8')
         cdef char*c_string = py_byte_string
@@ -67,7 +64,6 @@ cdef class Vocab:
         return self.weights
 
     def load_word2vec(Vocab self, str filepath):
-        #f = open(filepath, "r")
         first = True
         cdef long rowid = 0
 
@@ -111,7 +107,7 @@ cdef class Vocab:
             self._thisptr = NULL  # inform __dealloc__
         return False  # propagate exceptions
 
-def tokenize(str sentence, str type= "conll"):
+def tokenize(str sentence, str tokenizer_type= "conll"):
     cdef vector[Token*] tokens = conll_tokenize(sentence, 0)
     cdef vector[Token*].iterator it = tokens.begin()
     output = []
@@ -123,8 +119,8 @@ def tokenize(str sentence, str type= "conll"):
 def text_to_word_sequence(vocab: Vocab,
                           text: str,
                           stem=False,
-                          normalizeURL=False,
-                          normalizeNumber=False,
+                          normalize_url=False,
+                          normalize_number=False,
                           lower = True):
     if lower:
         text = text.lower()

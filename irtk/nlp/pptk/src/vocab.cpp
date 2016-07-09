@@ -172,20 +172,3 @@ void irtk::Vocabulary::load(char *read_vocab_file) {
   }
   infile.close();
 }
-
-
-void irtk::Vocabulary::load_word2vec(char *read_vocab_file) {
-  std::string line;
-
-  std::ifstream infile(read_vocab_file);
-  while (std::getline(infile, line)) {
-    std::istringstream iss(line);
-    char *curWord;
-    long long count;
-    if (iss >> curWord >> count)
-      addWord(curWord, count);
-    else
-      continue;
-  }
-  infile.close();
-}

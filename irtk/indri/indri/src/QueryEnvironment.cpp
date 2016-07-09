@@ -205,7 +205,7 @@ void indri::api::QueryEnvironment::_copyStatistics( std::vector<indri::lang::Raw
 
 std::vector<indri::server::QueryServerResponse*> indri::api::QueryEnvironment::_runServerQuery( std::vector<indri::lang::Node*>& roots, int resultsRequested ) {
   std::vector<indri::server::QueryServerResponse*> responses;
-  
+
   // this ships out the requests to each server (doesn't necessarily block until they're done)
   for( size_t i=0; i<_servers.size(); i++ ) {
     indri::server::QueryServerResponse* response = _servers[i]->runQuery( roots, resultsRequested, true );
@@ -1189,6 +1189,7 @@ indri::api::QueryResults indri::api::QueryEnvironment::runQuery( indri::api::Que
 std::vector<indri::api::ScoredExtentResult> indri::api::QueryEnvironment::runQuery( const std::string& query, int resultsRequested, const std::string &queryType ) {
   indri::infnet::InferenceNetwork::MAllResults results;
   std::vector<indri::api::ScoredExtentResult> queryResult = _runQuery( results, query, resultsRequested, 0, 0, queryType );
+
   return queryResult;
 }
 

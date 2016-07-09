@@ -49,13 +49,14 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pip atlas numpy scipy matplotlib nose dateutil pandas statsmodels
   - conda install --yes python=$TRAVIS_PYTHON_VERSION Cython
   # Coverage packages are on my binstar channel
-  - pip install pep8 python-coveralls nose-cov
+  - pip install pep8 python-coveralls
+  - pip install pytest-cov
   - pip install coveralls
   - python setup.py install
 
 # Run test
 script:
-  - nosetests --with-coverage --cover-package=aitk --logging-level=INFO
+  - py.test --cov=irtk
 
 # Calculate coverage
 after_success:

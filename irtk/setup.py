@@ -4,15 +4,15 @@ import os
 def configuration(parent_package='', top_path=None):
     from numpy.distutils.misc_util import Configuration
 
-    libraries = []
-    if os.name == 'posix':
-        libraries.append('m')
+    config = Configuration('irtk', parent_package, top_path)
 
-    config = Configuration('aitk', parent_package, top_path)
+    config.add_subpackage('indri')
+    config.add_subpackage('indri/tests')
 
-    config.add_subpackage('indriPy')
-
-
+    config.add_subpackage('retrieval')
+    config.add_subpackage('eval')
+    config.add_subpackage('features')
+    config.add_subpackage('nlp')
     return config
 
 if __name__ == '__main__':

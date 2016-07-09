@@ -1,6 +1,10 @@
 [run]
-branch = True
-source = aitk
-include = */aitk/*
+plugins = Cython.Coverage
+
+
+[report]
 omit =
-    */setup.py
+    #*/python?.?/*
+    *__init__*
+    setup.py
+    */tests/test_*

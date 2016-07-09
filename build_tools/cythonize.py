@@ -5,7 +5,7 @@ Cythonize pyx files into C files as needed.
 
 Usage: cythonize [root_dir]
 
-Default [root_dir] is 'aitk'.
+Default [root_dir] is 'irtk'.
 
 Checks pyx files to see if they have been changed relative to their
 corresponding C files.  If they have, then runs cython on these files to
@@ -41,7 +41,7 @@ import hashlib
 import subprocess
 
 HASH_FILE = 'cythonize.dat'
-DEFAULT_ROOT = 'satk'
+DEFAULT_ROOT = 'irtk'
 
 # WindowsError is not defined on unix systems
 try:
@@ -54,18 +54,20 @@ def cythonize(cython_file, gen_file):
     try:
         from Cython.Compiler.Version import version as cython_version
         from distutils.version import LooseVersion
-        if LooseVersion(cython_version) < LooseVersion('0.21'):
-            raise Exception('Building scikit-learn requires Cython >= 0.21')
+        if LooseVersion(cython_version) < LooseVersion('0.23'):
+            raise Exception('Building irtk requires Cython >= 0.23')
 
     except ImportError:
         pass
 
-    flags = ['--fast-fail']
+    flags = ['--line-directives']
     if gen_file.endswith('.cpp'):
         flags += ['--cplus']
 
     try:
         try:
+            print(flags)
+            print(gen_file)
             rc = subprocess.call(['cython'] +
                                  flags + ["-o", gen_file, cython_file])
             if rc != 0:

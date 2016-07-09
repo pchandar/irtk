@@ -24,6 +24,7 @@
 #include "indri/TermExtent.hpp"
 #include "indri/MetadataPair.hpp"
 #include <string>
+#include <vector>
 namespace indri
 {
   namespace api 
@@ -41,9 +42,45 @@ namespace indri
       }
       
       indri::utility::greedy_vector<char*> terms;
+      std::vector<char*> terms_py(){
+        std::vector<char*> response;
+
+          for( size_t i=0; i<terms.size(); i++ ) {
+            response.push_back( terms.at(i) );
+          }
+        return response;
+      }
+
       indri::utility::greedy_vector<indri::parse::TagExtent *> tags;
+      std::vector<indri::parse::TagExtent*> tags_py(){
+        std::vector<indri::parse::TagExtent*> response;
+
+          for( size_t i=0; i<tags.size(); i++ ) {
+            response.push_back( tags.at(i) );
+          }
+        return response;
+      }
+
       indri::utility::greedy_vector<indri::parse::TermExtent> positions;
+      std::vector<indri::parse::TermExtent> positions_py(){
+        std::vector<indri::parse::TermExtent> response;
+
+          for( size_t i=0; i<positions.size(); i++ ) {
+            response.push_back( positions.at(i) );
+          }
+        return response;
+      }
+
       indri::utility::greedy_vector<indri::parse::MetadataPair> metadata;
+      std::vector<indri::parse::MetadataPair> metadata_py(){
+        std::vector<indri::parse::MetadataPair> response;
+
+          for( size_t i=0; i<metadata.size(); i++ ) {
+            response.push_back( metadata.at(i) );
+          }
+        return response;
+      }
+
     };
   }
 }

@@ -1,33 +1,38 @@
 # ! /usr/bin/env python
 #
 # License: 3-clause BSD
-import subprocess
-import sys
 import os
 import shutil
+import subprocess
+import sys
 from distutils.command.clean import clean as Clean
-from pkg_resources import parse_version
 
-DISTNAME = 'AITK'
+DISTNAME = 'IRTK'
 DESCRIPTION = 'A set of python modules for building a search assistant'
 with open('README.md') as f:
     LONG_DESCRIPTION = f.read()
 MAINTAINER = 'Praveen Chandar'
 MAINTAINER_EMAIL = 'pcr@udel.edu'
 URL = 'http://pchandar.github.io'
-LICENSE = 'BSD'
-
+LICENSE = 'MIT'
 VERSION = '0.0.1'
-
-scipy_min_version = '0.9'
-numpy_min_version = '1.6.1'
 
 # Optional setuptools features
 # We need to import setuptools early, if we want setuptools features,
 # as it monkey-patches the 'setup' function
 # For some commands, use setuptools
-SETUPTOOLS_COMMANDS = {'develop', 'release', 'bdist_egg', 'bdist_rpm', 'bdist_wininst', 'install_egg_info',
-                       'build_sphinx', 'egg_info', 'easy_install', 'upload', 'bdist_wheel',
+SETUPTOOLS_COMMANDS = {'develop',
+                       'release',
+                       'bdist_egg',
+                       'bdist_rpm',
+                       'bdist_wininst',
+                       'install_egg_info',
+                       'build_sphinx',
+                       'egg_info',
+                       'easy_install',
+                       'upload',
+                       'bdist_wheel',
+                       'test'
                        '--single-version-externally-managed'}
 if SETUPTOOLS_COMMANDS.intersection(sys.argv):
     extra_setuptools_args = dict(
@@ -39,7 +44,6 @@ else:
 
 
 # Custom clean command to remove build artifacts
-
 class CleanCommand(Clean):
     description = "Remove build artifacts from the source tree"
 
@@ -52,10 +56,10 @@ class CleanCommand(Clean):
             cython_hash_file = os.path.join(cwd, 'cythonize.dat')
             if os.path.exists(cython_hash_file):
                 os.unlink(cython_hash_file)
-            print('Will remove generated .c files')
+            print('Will remove generated .c and .cpp files')
         if os.path.exists('build'):
             shutil.rmtree('build')
-        for dirpath, dirnames, filenames in os.walk('aitk'):
+        for dirpath, dirnames, filenames in os.walk('irtk'):
             for filename in filenames:
                 if any(filename.endswith(suffix) for suffix in
                        (".so", ".pyd", ".dll", ".pyc")):
@@ -69,11 +73,6 @@ class CleanCommand(Clean):
             for dirname in dirnames:
                 if dirname == '__pycache__':
                     shutil.rmtree(os.path.join(dirpath, dirname))
-
-
-cmdclass = {'clean': CleanCommand}
-
-
 
 
 def configuration(parent_package='', top_path=None):
@@ -90,50 +89,9 @@ def configuration(parent_package='', top_path=None):
                        delegate_options_to_subpackages=True,
                        quiet=True)
 
-    config.add_subpackage('aitk')
+    config.add_subpackage('irtk')
 
     return config
-
-
-
-
-
-def get_scipy_status():
-    """
-    Returns a dictionary containing a boolean specifying whether SciPy
-    is up-to-date, along with the version string (empty string if
-    not installed).
-    """
-    scipy_status = {}
-    try:
-        import scipy
-        scipy_version = scipy.__version__
-        scipy_status['up_to_date'] = parse_version(
-            scipy_version) >= parse_version(scipy_min_version)
-        scipy_status['version'] = scipy_version
-    except ImportError:
-        scipy_status['up_to_date'] = False
-        scipy_status['version'] = ""
-    return scipy_status
-
-
-def get_numpy_status():
-    """
-    Returns a dictionary containing a boolean specifying whether NumPy
-    is up-to-date, along with the version string (empty string if
-    not installed).
-    """
-    numpy_status = {}
-    try:
-        import numpy
-        numpy_version = numpy.__version__
-        numpy_status['up_to_date'] = parse_version(
-            numpy_version) >= parse_version(numpy_min_version)
-        numpy_status['version'] = numpy_version
-    except ImportError:
-        numpy_status['up_to_date'] = False
-        numpy_status['version'] = ""
-    return numpy_status
 
 
 def generate_cython():
@@ -142,7 +100,7 @@ def generate_cython():
     p = subprocess.call([sys.executable, os.path.join(cwd,
                                                       'build_tools',
                                                       'cythonize.py'),
-                         'aitk'],
+                         'irtk'],
                         cwd=cwd)
     if p != 0:
         raise RuntimeError("Running cythonize failed!")
@@ -157,6 +115,9 @@ def setup_package():
                     url=URL,
                     version=VERSION,
                     download_url='',
+                    requires=[
+                        'pytest'
+                    ],
                     long_description=LONG_DESCRIPTION,
                     classifiers=['Intended Audience :: Science/Research',
                                  'Intended Audience :: Developers',
@@ -168,10 +129,9 @@ def setup_package():
                                  'Operating System :: POSIX',
                                  'Operating System :: Unix',
                                  'Operating System :: MacOS',
-                                 'Programming Language :: Python :: 2.7',
-                                 'Programming Language :: Python :: 3',
+                                 'Programming Language :: Python :: 3.5',
                                  ],
-                    cmdclass=cmdclass,
+                    cmdclass={'clean': CleanCommand},
                     **extra_setuptools_args)
 
     if len(sys.argv) == 1 or (len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or sys.argv[1] in ('--help-commands',
@@ -190,28 +150,7 @@ def setup_package():
 
         metadata['version'] = VERSION
     else:
-        numpy_status = get_numpy_status()
-        numpy_req_str = "aitk requires NumPy >= {0}.\n".format(numpy_min_version)
-        scipy_status = get_scipy_status()
-        scipy_req_str = "aitk requires SciPy >= {0}.\n".format(scipy_min_version)
-        instructions = ""
-
-        if numpy_status['up_to_date'] is False:
-            if numpy_status['version']:
-                raise ImportError("Your installation of Numerical Python "
-                                  "(NumPy) {0} is out-of-date.\n{1}{2}".format(numpy_status['version'],
-                                                                               numpy_req_str, instructions))
-            else:
-                raise ImportError("Numerical Python (NumPy) is not "
-                                  "installed.\n{0}{1}".format(numpy_req_str, instructions))
-        if scipy_status['up_to_date'] is False:
-            if scipy_status['version']:
-                raise ImportError("Your installation of Scientific Python "
-                                  "(SciPy) {0} is out-of-date.\n{1}{2}".format(scipy_status['version'],
-                                                                               scipy_req_str, instructions))
-            else:
-                raise ImportError("Scientific Python (SciPy) is not "
-                                  "installed.\n{0}{1}".format(scipy_req_str, instructions))
+        pass
 
         from numpy.distutils.core import setup
 

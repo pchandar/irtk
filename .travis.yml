@@ -42,8 +42,7 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip atlas numpy scipy matplotlib nose dateutil pandas statsmodels
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION Cython
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy matplotlib pandas Cython
   - pip install pep8 python-coveralls
   - pip install pytest-cov
   - pip install coveralls

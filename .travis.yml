@@ -43,7 +43,7 @@ install:
 
 # Run test
 script:
-  - py.test --cov=irtk
+  - py.test --cov=irtk irtk
 
 # Calculate coverage
 after_success:

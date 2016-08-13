@@ -6,6 +6,8 @@ osx_image: xcode7.3
 env:
     - CC=clang   CXX=clang++
 
+cache: pip
+
 addons:
     apt:
         sources:
@@ -35,10 +37,8 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip numpy scipy matplotlib pandas Cython
-  - pip install pep8 python-coveralls
-  - pip install pytest-cov
-  - pip install coveralls
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION pip
+  - pip install -r requirements.txt
   - python setup.py install
 
 # Run test

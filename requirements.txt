@@ -1,3 +1,11 @@
 numpy
+scipy
+matplotlib
 pandas
+Cython
+pep8
 pytest
+python-coveralls
+pytest-cov
+pytest-cython
+coveralls

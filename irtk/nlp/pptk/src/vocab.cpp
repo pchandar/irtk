@@ -1,8 +1,8 @@
 #include "vocab.h"
-#include <string>
-#include <iostream>
+#include <string.h>
+#include <iostream.h>
 #include <sstream>
-#include <fstream>
+#include <fstream.h>
 
 
 // Returns hash value of a word (from word2vec)

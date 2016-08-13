@@ -1,9 +1,9 @@
 # ! /usr/bin/env pythonimport os
+import glob
 import io
 import os
 import sys
 import warnings
-import glob
 
 if sys.version_info[:2] < (3, 4):
     raise Exception('This version of gensim needs Python 3.4 or later.')
@@ -14,6 +14,7 @@ from setuptools.command.build_ext import build_ext
 
 directive_defaults['linetrace'] = True
 directive_defaults['binding'] = True
+
 
 class CustomBuildExt(build_ext):
     """Allow C extension building to fail.
@@ -59,6 +60,7 @@ http://api.mongodb.org/python/current/installation.html#osx
                 self.warning_message +
                 "Extension modules" +
                 "There was an issue with your platform configuration - see above.")
+            exit(0)
 
     def build_extension(self, ext):
         name = ext.name
@@ -71,6 +73,7 @@ http://api.mongodb.org/python/current/installation.html#osx
                 self.warning_message +
                 "The %s extension module" % (name,) +
                 "The output above this warning shows how the compilation failed.")
+            exit(0)
 
     # the following is needed to be able to add numpy's include dirs... without
     # importing numpy directly in this script, before it's actually installed!
@@ -97,11 +100,11 @@ model_dir = os.path.join(os.path.dirname(__file__), 'gensim', 'models')
 gensim_dir = os.path.join(os.path.dirname(__file__), 'gensim')
 
 cmdclass = {'build_ext': CustomBuildExt}
-extra_compile_args = ['-DSTDC_HEADERS=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1',
+extra_compile_args = ['-DSTDC_HEADERS=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1', '-DHAVE_LIBIBERTY=1',
                       '-DHAVE_STDLIB_H=1', '-DHAVE_STRING_H=1', '-DHAVE_MEMORY_H=1', '-DHAVE_STRINGS_H=1',
                       '-DHAVE_INTTYPES_H=1', '-DHAVE_STDINT_H=1', '-DHAVE_UNISTD_H=1', '-DHAVE_FSEEKO=1',
                       '-DHAVE_EXT_ATOMICITY_H=1', '-DP_NEEDS_GNU_CXX_NAMESPACE=1', '-DHAVE_MKSTEMP=1',
-                      '-DHAVE_MKSTEMPS=1', '-stdlib=libstdc++', '-g', '-O3']
+                      '-DHAVE_MKSTEMPS=1', '-g', '-O3']
 setup(
     name='irtk',
     version='0.0.1',
@@ -113,15 +116,17 @@ setup(
                   language="c++",
                   sources=['irtk/nlp/pptk/src/vocab.cpp', 'irtk/nlp/text.pyx'],
                   include_dirs=[os.path.join('irtk', 'nlp', 'pptk', 'include')],
+                  extra_compile_args=extra_compile_args,
+                  extra_link_args=['-g', '-O3'],
                   define_macros=[('CYTHON_TRACE', '1')]),
         Extension('irtk.indri.query_env',
                   sources=
-                      glob.glob(os.path.join('irtk', 'indri', 'indri', 'xpdf', 'src', '*.cc')) +
-                      glob.glob(os.path.join('irtk', 'indri', 'indri', 'antlr', 'src', '*.cpp')) +
-                      glob.glob(os.path.join('irtk', 'indri', 'indri', 'lemur', 'src', '*.c')) +
-                      glob.glob(os.path.join('irtk', 'indri', 'indri', 'lemur', 'src', '*.cpp')) +
-                      glob.glob(os.path.join('irtk', 'indri', 'indri', 'src', '*.cpp')) +
-                      ['irtk/indri/query_env.pyx'],
+                  glob.glob(os.path.join('irtk', 'indri', 'indri', 'xpdf', 'src', '*.cc')) +
+                  glob.glob(os.path.join('irtk', 'indri', 'indri', 'antlr', 'src', '*.cpp')) +
+                  glob.glob(os.path.join('irtk', 'indri', 'indri', 'lemur', 'src', '*.c')) +
+                  glob.glob(os.path.join('irtk', 'indri', 'indri', 'lemur', 'src', '*.cpp')) +
+                  glob.glob(os.path.join('irtk', 'indri', 'indri', 'src', '*.cpp')) +
+                  ['irtk/indri/query_env.pyx'],
                   extra_compile_args=extra_compile_args,
                   extra_link_args=['-g', '-O3'],
                   language="c++",

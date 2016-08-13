@@ -1,6 +1,8 @@
 [run]
 plugins = Cython.Coverage
-
+branch = True
+source = irtk
+include = */irtk/*
 
 [report]
 omit =

@@ -1,6 +1,6 @@
 #include "vocab.h"
 #include <string.h>
-#include <iostream.h>
+#include <iostream>
 #include <sstream>
 #include <fstream.h>
 

@@ -6,7 +6,7 @@ import sys
 import warnings
 
 if sys.version_info[:2] < (3, 4):
-    raise Exception('This version of gensim needs Python 3.4 or later.')
+    raise Exception('This version of irtk needs Python 3.4 or later.')
 
 from Cython.Compiler.Options import directive_defaults
 from setuptools import setup, find_packages, Extension

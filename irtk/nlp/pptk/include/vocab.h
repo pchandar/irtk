@@ -37,8 +37,8 @@ class Vocabulary {
 
 
  public:
-  Vocabulary();
-  ~Vocabulary();
+  Vocabulary(); # done
+  ~Vocabulary(); #done
 
   long long getWordCount(const char *);
 

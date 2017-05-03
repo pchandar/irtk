@@ -2,7 +2,7 @@
 # distutils: define_macros=CYTHON_TRACE_NOGIL=1
 
 from __future__ import print_function
-from .query_env cimport QueryEnvironment, QueryRequest, QueryResults, QueryResult
+from .query_env cimport *
 
 from .types cimport DOCID_T
 from libcpp.string cimport string
@@ -38,8 +38,8 @@ cdef class PyQueryEnvironment:
         self._check_alive()
         try:
             self._thisptr.addIndex(index_name)
-        except RuntimeError:
-            raise RuntimeError("Unable to add index. Check index path")
+        except RuntimeError as e :
+            raise RuntimeError("Unable to add index. Check index path", e)
 
     def remove_server(PyQueryEnvironment self, str server_name):
         self._check_alive()

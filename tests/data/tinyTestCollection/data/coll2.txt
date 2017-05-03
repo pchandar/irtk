@@ -1,0 +1,10 @@
+<?xml version="1 0" encoding="utf8"?>
+<!DOCTYPE DOCSTREAM SYSTEM 'newswire xml dtd'>
+<DOCSTREAM>
+<DOC>
+<DOCNO>100</DOCNO>
+<TEXT>
+The Secrehe STScI
+</TEXT>
+</DOC>
+</DOCSTREAM>

@@ -1,0 +1,11 @@
+  <parameters>
+    <index>index</index>
+    <memory>1G</memory>
+    <corpus>
+      <path>/Users/pcravich/repo/irtk/tests/data/tinyTestCollection/data</path>
+      <class>trectext</class>
+    </corpus>
+
+    <stemmer><name>krovetz</name></stemmer>
+
+  </parameters>

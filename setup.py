@@ -1,185 +1,181 @@
-# ! /usr/bin/env pythonimport os
-import glob
-import io
+import distutils.command.build
+import distutils.command.clean
+import distutils.unixccompiler
 import os
+import platform
+import subprocess
 import sys
-import warnings
 
-if sys.version_info[:2] < (3, 4):
-    raise Exception('This version of irtk needs Python 3.4 or later.')
+import setuptools.command.build_ext
+import setuptools.command.build_py
+import setuptools.command.develop
+import setuptools.command.install
+from setuptools import setup, Extension, \
+    distutils, Command, find_packages
+from Cython.Build import cythonize
 
-from Cython.Compiler.Options import directive_defaults
-from setuptools import setup, find_packages, Extension
-from setuptools.command.build_ext import build_ext
+with open('README.md') as readme_file:
+    readme = readme_file.read()
 
-directive_defaults['linetrace'] = True
-directive_defaults['binding'] = True
+with open('requirements.txt') as req_file:
+    requirements = [req.strip() for req in req_file]
+
+version = '0.0.1'
 
 
-class CustomBuildExt(build_ext):
-    """Allow C extension building to fail.
+################################################################################
+# Custom build commands
+################################################################################
 
-    The C extension speeds up word2vec and doc2vec training, but is not essential.
-    """
 
-    warning_message = """
-********************************************************************
-WARNING: %s could not
-be compiled. No C extensions are essential for gensim to run,
-although they do result in significant speed improvements for some modules.
-%s
+class build_deps(Command):
+    user_options = []
 
-Here are some hints for popular operating systems:
+    def initialize_options(self):
+        pass
 
-If you are seeing this message on Linux you probably need to
-install GCC and/or the Python development package for your
-version of Python.
-
-Debian and Ubuntu users should issue the following command:
-
-    $ sudo apt-get install build-essential python-dev
-
-RedHat, CentOS, and Fedora users should issue the following command:
-
-    $ sudo yum install gcc python-devel
-
-If you are seeing this message on OSX please read the documentation
-here:
-
-http://api.mongodb.org/python/current/installation.html#osx
-********************************************************************
-"""
+    def finalize_options(self):
+        pass
 
     def run(self):
-        try:
-            build_ext.run(self)
-        except Exception:
-            e = sys.exc_info()[1]
-            sys.stdout.write('%s\n' % str(e))
-            warnings.warn(
-                self.warning_message +
-                "Extension modules" +
-                "There was an issue with your platform configuration - see above.")
-            exit(0)
-
-    def build_extension(self, ext):
-        name = ext.name
-        try:
-            build_ext.build_extension(self, ext)
-        except Exception:
-            e = sys.exc_info()[1]
-            sys.stdout.write('%s\n' % str(e))
-            warnings.warn(
-                self.warning_message +
-                "The %s extension module" % (name,) +
-                "The output above this warning shows how the compilation failed.")
-            exit(0)
-
-    # the following is needed to be able to add numpy's include dirs... without
-    # importing numpy directly in this script, before it's actually installed!
-    # http://stackoverflow.com/questions/19919905/how-to-bootstrap-numpy-installation-in-setup-py
-    def finalize_options(self):
-        build_ext.finalize_options(self)
-        # Prevent numpy from thinking it is still in its setup process:
-        # https://docs.python.org/2/library/__builtin__.html#module-__builtin__
-        if isinstance(__builtins__, dict):
-            __builtins__["__NUMPY_SETUP__"] = False
-        else:
-            __builtins__.__NUMPY_SETUP__ = False
-
-        import numpy
-        self.include_dirs.append(numpy.get_include())
+        build_all_cmd = ['bash', 'irtk/lib/build_all.sh']
+        if subprocess.call(build_all_cmd) != 0:
+            sys.exit(1)
 
 
-def readfile(fname):
-    path = os.path.join(os.path.dirname(__file__), fname)
-    return io.open(path, encoding='utf8').read()
+class build(distutils.command.build.build):
+    sub_commands = [
+                       ('build_deps', lambda self: True),
+                   ] + distutils.command.build.build.sub_commands
 
 
-model_dir = os.path.join(os.path.dirname(__file__), 'gensim', 'models')
-gensim_dir = os.path.join(os.path.dirname(__file__), 'gensim')
+class install(setuptools.command.install.install):
+    def run(self):
+        if not self.skip_build:
+            self.run_command('build_deps')
+        setuptools.command.install.install.run(self)
 
-cmdclass = {'build_ext': CustomBuildExt}
-extra_compile_args = ['-DSTDC_HEADERS=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1', '-DHAVE_LIBIBERTY=1',
-                      '-DHAVE_STDLIB_H=1', '-DHAVE_STRING_H=1', '-DHAVE_MEMORY_H=1', '-DHAVE_STRINGS_H=1',
-                      '-DHAVE_INTTYPES_H=1', '-DHAVE_STDINT_H=1', '-DHAVE_UNISTD_H=1', '-DHAVE_FSEEKO=1',
-                      '-DHAVE_EXT_ATOMICITY_H=1', '-DP_NEEDS_GNU_CXX_NAMESPACE=1', '-DHAVE_MKSTEMP=1',
-                      '-DHAVE_MKSTEMPS=1', '-g', '-O3']
-setup(
-    name='irtk',
-    version='0.0.1',
-    description='Python framework for information retireval and nlp experimentation',
-    long_description=readfile('README.md'),
 
-    ext_modules=[
-        Extension("irtk.nlp.text",
-                  language="c++",
-                  sources=['irtk/nlp/pptk/src/vocab.cpp', 'irtk/nlp/text.pyx'],
-                  include_dirs=[os.path.join('irtk', 'nlp', 'pptk', 'include')],
-                  extra_compile_args=extra_compile_args,
-                  extra_link_args=['-g', '-O3'],
-                  define_macros=[('CYTHON_TRACE', '1')]),
-        Extension('irtk.indri.query_env',
-                  sources=
-                  glob.glob(os.path.join('irtk', 'indri', 'indri', 'xpdf', 'src', '*.cc')) +
-                  glob.glob(os.path.join('irtk', 'indri', 'indri', 'antlr', 'src', '*.cpp')) +
-                  glob.glob(os.path.join('irtk', 'indri', 'indri', 'lemur', 'src', '*.c')) +
-                  glob.glob(os.path.join('irtk', 'indri', 'indri', 'lemur', 'src', '*.cpp')) +
-                  glob.glob(os.path.join('irtk', 'indri', 'indri', 'src', '*.cpp')) +
-                  ['irtk/indri/query_env.pyx'],
-                  extra_compile_args=extra_compile_args,
-                  extra_link_args=['-g', '-O3'],
-                  language="c++",
-                  include_dirs=[
-                      os.path.join('irtk', 'indri', 'indri', 'include'),
-                      os.path.join('irtk', 'indri', 'indri', 'lemur', 'include'),
-                      os.path.join('irtk', 'indri', 'indri', 'lemur', 'include', 'lemur'),
-                      os.path.join('irtk', 'indri', 'indri', 'xpdf', 'include'),
-                      os.path.join('irtk', 'indri', 'indri', 'antlr', 'include')],
-                  define_macros=[('CYTHON_TRACE', '1')])
-    ],
-    cmdclass=cmdclass,
-    packages=find_packages(),
+class clean(distutils.command.clean.clean):
+    def run(self):
+        import os
+        import glob
+        import shutil
 
-    author='Praveen Chandar',
-    author_email='pcr@udel.edu',
+        def delete(pattern):
+            for filename in glob.iglob(pattern, recursive=True):
+                try:
+                    os.unlink(filename)
+                except:
+                    shutil.rmtree(filename)
 
-    url='http://pchandar.github.io',
+        [delete('**/*' + d) for d in ['.pyc', '.pyo', '~', #'.so', '.a', '.dylib',
+                                      '__pycache__' ]]
+        [delete(d) for d in ['build', 'dist', '.eggs', 'irtk/indri/**/*.cpp',
+                             'irtk/indri/**/*.c', '*.egg-info', '.tox', '.coverage']]
 
-    keywords='Singular Value Decomposition, SVD, Latent Semantic Indexing, '
-             'LSA, LSI, Latent Dirichlet Allocation, LDA, '
-             'Hierarchical Dirichlet Process, HDP, Random Projections, '
-             'TFIDF, word2vec',
+        # It's an old-style class in Python 2.7...
+        distutils.command.clean.clean.run(self)
 
-    platforms='any',
 
-    zip_safe=False,
+################################################################################
+# Configure compile flags
+################################################################################
 
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Intended Audience :: Science/Research',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3.5',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence',
-        'Topic :: Scientific/Engineering :: Information Analysis',
-        'Topic :: Text Processing :: Linguistic',
-    ],
+include_dirs = []
+extra_link_args = []
+extra_compile_args = ['-w', '-fPIC', '-m64', '-stdlib=libstdc++', '-Wno-write-strings']
+extra_compile_args += ['-DSTDC_HEADERS=1', '-DHAVE_SYS_TYPES_H=1', '-DHAVE_SYS_STAT_H=1', '-DHAVE_LIBIBERTY=1',
+                       '-DHAVE_STDLIB_H=1', '-DHAVE_STRING_H=1', '-DHAVE_MEMORY_H=1', '-DHAVE_STRINGS_H=1',
+                       '-DHAVE_INTTYPES_H=1', '-DHAVE_STDINT_H=1', '-DHAVE_UNISTD_H=1', '-DHAVE_FSEEKO=1',
+                       '-DHAVE_EXT_ATOMICITY_H=1', '-DP_NEEDS_GNU_CXX_NAMESPACE=1', '-DHAVE_MKSTEMP=1',
+                       '-DHAVE_MKSTEMPS=1', '-g', '-O3']
 
-    test_suite="irtk.test",
-    setup_requires=[
-        'numpy >= 1.3'
-    ],
-    install_requires=[
-        'numpy >= 1.3',
-        'scipy >= 0.7.0',
-        'six >= 1.5.0',
-    ],
+if platform.system() == 'Linux':
+    extra_compile_args += ['-static-libstdc++']
+    extra_link_args += ['-static-libstdc++']
 
-    extras_require={
-        'distributed': ['Pyro4 >= 4.27'],
-        'wmd': ['pyemd >= 0.2.0'],
-    },
+cwd = os.path.dirname(os.path.abspath(__file__))
+lib_path = os.path.join(cwd, "irtk", "lib")
 
-    include_package_data=True,
-)
+include_dirs += [
+    lib_path + "/indri/include",
+    lib_path + "/indri/include/indri_extras",
+    lib_path + "/indri/indri_5_11/lemur/include/lemur",
+    lib_path + "/indri/indri_5_11/lemur/include",
+    lib_path + "/indri/indri_5_11/xpdf/include",
+    lib_path + "/indri/indri_5_11/zlib/include",
+    lib_path + "/indri/indri_5_11/antlr/include"
+]
+
+extra_link_args.append('-L' + lib_path)
+
+# we specify exact lib names to avoid conflict with lua-torch installs
+INDRI_LIB = os.path.join(lib_path, 'libindri.so')
+if platform.system() == 'Darwin':
+    INDRI_LIB = os.path.join(lib_path, 'libindri.dylib')
+extra_link_args.append(INDRI_LIB)
+
+def make_relative_rpath(path):
+    if platform.system() == 'Darwin':
+        return '-Wl,-rpath,@loader_path/' + path
+    else:
+        return '-Wl,-rpath,$ORIGIN/' + path
+
+################################################################################
+# Declare extensions and package
+################################################################################
+
+extensions = []
+
+IndriIndex = Extension("irtk.indri.query",
+                       language="c++",
+                       extra_compile_args=extra_compile_args,
+                       extra_link_args=extra_link_args + [make_relative_rpath('../lib')],
+                       include_dirs=include_dirs,
+                       sources=['irtk/indri/query.pyx'],
+                       define_macros=[('CYTHON_TRACE', '1')])
+extensions.append(IndriIndex)
+
+
+IndriIndex = Extension("irtk.indri.indexer",
+                       language="c++",
+                       extra_compile_args=extra_compile_args,
+                       extra_link_args=extra_link_args + [make_relative_rpath('../lib')],
+                       include_dirs=include_dirs,
+                       sources=['irtk/indri/indexer.pyx'],
+                       define_macros=[('CYTHON_TRACE', '1')])
+extensions.append(IndriIndex)
+
+
+# IndriQueryEnv = Extension("irtk.indri.index",
+#                           language="c++",
+#                           extra_compile_args=extra_compile_args,
+#                           extra_link_args=extra_link_args,
+#                           include_dirs=include_dirs,
+#                           sources=['irtk/indri/index.pyx'],
+#                           define_macros=[('CYTHON_TRACE', '1')])
+# extensions.append(IndriQueryEnv)
+
+setup(name='irtk',
+      version='0.0.1',
+      description='Information Retrieval Toolkit',
+      long_description=readme + '\n\n',
+      author='Praveen Chandar',
+      author_email='pcr@udel.edu',
+      url='https://github.com/pchandar/irtk',
+      install_requires=requirements,
+      tests_require=['pytest'],
+      test_suite='tests',
+      include_package_data=True,
+      cmdclass={
+          'clean': clean,
+          'build_deps': build_deps,
+          'build': build,
+          'install': install
+      },
+      packages=find_packages(),
+      package_dir={'irtk': 'irtk'},
+      package_data={'irtk': ['irtk/lib/*.so*', 'itrk/lib/*.dylib*'] + include_dirs},
+      ext_modules=cythonize(extensions)
+      )

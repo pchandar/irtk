@@ -1,3 +1,2 @@
-recursive-include experiments *
 recursive-include irtk *.c *.h *.pyx *.pxd *.pxi
 include README.md
